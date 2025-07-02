@@ -7,38 +7,40 @@ import uvicorn
 
 app = FastAPI()
 
-# Enable CORS so your Unity app can access the API
+# Enable CORS for Unity
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # You can restrict this to your Unity domain later
+    allow_origins=["*"],  # Later replace "*" with your game domain
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Load questions from JSON file
+# Load questions from JSON
 with open("large_questions_dataset.json", "r") as f:
     data = json.load(f)
     questions = data["questions"]
 
 @app.get("/question")
 def get_question(grade: str, topic: str, difficulty: str):
-    # Filter questions based on query
     filtered = [
         q for q in questions
-        if q["grade"] == grade and q["topic"].lower() == topic.lower() and q["difficulty"].lower() == difficulty.lower()
+        if q.get("grade") == grade
+        and q.get("topic", "").lower() == topic.lower()
+        and q.get("difficulty", "").lower() == difficulty.lower()
     ]
 
     if not filtered:
         raise HTTPException(status_code=404, detail="No matching questions found")
 
     question = random.choice(filtered)
+
     return {
-        "prompt": question["prompt"],
-        "choices": question["choices"],
-        "answer": question["answer"]
+        "prompt": question.get("prompt"),
+        "choices": question.get("choices", []),
+        "answer": question.get("answer")
     }
 
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))  # Render uses PORT env variable
+    port = int(os.environ.get("PORT", 8000))
     uvicorn.run(app, host="0.0.0.0", port=port)
