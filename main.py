@@ -17,7 +17,7 @@ app.add_middleware(
 )
 
 # Load questions from JSON
-with open("large_questions_dataset.json", "r") as f:
+with open("large_clean_questions_dataset_v2.json", "r") as f:
     data = json.load(f)
     questions = data["questions"]
 
